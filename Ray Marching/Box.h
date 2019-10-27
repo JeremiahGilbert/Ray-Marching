@@ -7,7 +7,7 @@
 class Box {
 public:
 	Box() = default;
-	Box(glm::vec3 const& position, glm::vec3 const& half_measures, Material const& material);
+	Box(glm::vec3 const& position, glm::vec3 const& rotation, glm::vec3 const& half_measures, Material const& material);
 
 	float distance_to(glm::vec3 const& point) const;
 
@@ -16,7 +16,7 @@ public:
 	}
 
 private:
-	glm::vec3 position_;
+	glm::mat4 transform_;
 	glm::vec3 half_measures_;
 
 	Material material_;

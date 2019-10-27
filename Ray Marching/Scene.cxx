@@ -184,9 +184,10 @@ std::pair<Camera, Scene> Scene::load_scene_from_json(std::filesystem::path const
 			shapes.emplace_back(Sphere{position, radius, material});
 		} else if (shape_type == "box") {
 			auto const position = read_from_json<glm::vec3>(shape_json["position"]);
+			auto const rotation = read_from_json<glm::vec3>(shape_json["rotation"]);
 			auto const half_measures = read_from_json<glm::vec3>(shape_json["half_measures"]);
 
-			shapes.emplace_back(Box{position, half_measures, material});
+			shapes.emplace_back(Box{position, rotation, half_measures, material});
 		} else if (shape_type == "light") {
 			auto const position = read_from_json<glm::vec3>(shape_json["position"]);
 			auto const radius = shape_json["radius"].asFloat();
