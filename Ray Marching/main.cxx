@@ -13,27 +13,22 @@ int main() {
 
 	auto const image_resolution = glm::uvec2{camera.image_resolution()};
 
-	cimg_library::CImg<unsigned char> image{image_resolution.x, image_resolution.y, 1, 3};
+	cimg_library::CImg<float> image{image_resolution.x, image_resolution.y, 1, 3};
 	image.fill(0);
+	image.permute_axes("cxyz");
 
-	auto horizontal_pixels = std::vector<unsigned int>{};
-	horizontal_pixels.resize(image_resolution.x);
-	std::iota(horizontal_pixels.begin(), horizontal_pixels.end(), 0);
-
-	auto vertical_pixels = std::vector<unsigned int>{};
-	vertical_pixels.resize(image_resolution.y);
-	std::iota(vertical_pixels.begin(), vertical_pixels.end(), 0);
-
-	std::for_each(std::execution::par_unseq, vertical_pixels.cbegin(), vertical_pixels.cend(), [&](auto const y) {
-		std::for_each(std::execution::par_unseq, horizontal_pixels.cbegin(), horizontal_pixels.cend(), [&](auto const x) {
-			auto ray = camera.create_ray_to_pixel(glm::vec2{x, y});
-			auto const color = scene.raymarch(ray);
-
-			image(x, y, 0) = static_cast<unsigned int>(color.r * 255);
-			image(x, y, 1) = static_cast<unsigned int>(color.g * 255);
-			image(x, y, 2) = static_cast<unsigned int>(color.b * 255);
-		});
+	auto pixel_vectors = std::vector<Ray>{};
+	for (auto y = 0u; y < image_resolution.y; ++y) {
+		for (auto x = 0u; x < image_resolution.x; ++x) {
+			pixel_vectors.emplace_back(camera.create_ray_to_pixel(glm::vec2{x, y}));
+		}
+	}
+	
+	std::transform(std::execution::par_unseq, pixel_vectors.cbegin(), pixel_vectors.cend(), reinterpret_cast<glm::vec3*>(image.begin()), [&](auto const& ray) {
+		return scene.raymarch(ray);
 	});
+
+	image.permute_axes("yzcx");
 
 	cimg_library::CImgDisplay display{image, "Ray Marching"};
 	while (!display.is_closed()) {
@@ -42,4 +37,3 @@ int main() {
 
 	return 0;
 }
-
