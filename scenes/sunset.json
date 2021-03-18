@@ -1,0 +1,144 @@
+{
+    "camera": {
+        "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": -10.0
+        },
+        "forward": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+        },
+        "up": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+        },
+        "image_resolution": {
+            "x": 1280.0,
+            "y": 720.0
+        },
+        "fov": 90.0
+    },
+    "scene": {
+        "materials": [{
+            "key": "water",
+            "value": {
+                "color": {
+                    "x": 0.0,
+                    "y": 0.2,
+                    "z": 0.8
+                },
+                "reflectance": 0.5,
+                "radiance": 0.0
+            }
+        },
+        {
+            "key": "metal",
+            "value": {
+                "color": {
+                    "x": 0.5,
+                    "y": 0.5,
+                    "z": 0.5
+                },
+                "reflectance": 0.8,
+                "radiance": 0.0
+            }
+        },
+        {
+            "key": "sun",
+            "value": {
+                "color": {
+                    "x": 1.0,
+                    "y": 0.5,
+                    "z": 0.0
+                },
+                "reflectance": 0.0,
+                "radiance": 9223372036854775807.0
+            }
+        }],
+        "shapes": [{
+            "index": 1,
+            "data": {
+                "normal": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "offset": 3.0,
+                "material_id": "water"
+            }
+        },
+        {
+            "index": 0,
+            "data": {
+                "position": {
+                    "x": 0.0,
+                    "y": 3.0,
+                    "z": 30.0
+                },
+                "radius": 3.0,
+                "material_id": "sun"
+            }
+        },
+        {
+            "index": 2,
+            "data": {
+                "position": {
+                    "x": -10.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "radius": 3.0,
+                "material_id": "metal"
+            }
+        },
+        {
+            "index": 2,
+            "data": {
+                "position": {
+                    "x": 10.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "radius": 3.0,
+                "material_id": "metal"
+            }
+        },
+        {
+            "index": 3,
+            "data": {
+                "position": {
+                    "x": 0.0,
+                    "y": 5.0,
+                    "z": 0.0
+                },
+                "rotation": {
+                    "x": 0.785398,
+                    "y": 0.785398,
+                    "z": 0.785398
+                },
+                "half_measures": {
+                    "x": 0.5,
+                    "y": 0.5,
+                    "z": 0.5
+                },
+                "material_id": "metal"
+            }
+        }],
+        "epsilon": 0.001,
+        "max_iterations": 1000,
+        "max_recursion_depth": 2,
+        "sky_color": {
+            "x": 0.52,
+            "y": 0.80,
+            "z": 0.92
+        },
+        "horizon_color": {
+            "x": 0.95,
+            "y": 0.70,
+            "z": 0.18
+        }
+    }
+}

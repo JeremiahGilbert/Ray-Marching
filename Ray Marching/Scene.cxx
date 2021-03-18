@@ -3,25 +3,6 @@
 #include <fstream>
 
 #include <glm/glm.hpp>
-#include <json/json.h>
-
-template<typename T>
-T read_from_json(Json::Value const& value);
-
-template<>
-glm::vec2 read_from_json(Json::Value const& value) {
-	return glm::vec2{value[0].asFloat(), value[1].asFloat()};
-}
-
-template<>
-glm::vec3 read_from_json(Json::Value const& value) {
-	return glm::vec3{value[0].asFloat(), value[1].asFloat(), value[2].asFloat()};
-}
-
-template<>
-glm::vec4 read_from_json(Json::Value const& value) {
-	return glm::vec4{value[0].asFloat(), value[1].asFloat(), value[2].asFloat(), value[3].asFloat()};
-}
 
 Scene::Scene(float const epsilon, unsigned int const max_iterations, unsigned int const max_recursion_depth, std::map<std::string, Material> const& materials, std::vector<Shape> const& shapes)
 	: epsilon_{epsilon}, max_iterations_{max_iterations}, max_recursion_depth_{max_recursion_depth}, materials_{materials}, shapes_{shapes} {}
@@ -35,7 +16,7 @@ glm::vec3 Scene::raymarch(Ray ray, unsigned int const recursion_depth) const {
 			return std::visit([&](auto const& shape) {
 				using T = std::decay_t<decltype(shape)>;
 
-				auto const material = shape.material();
+				auto const material = materials_.at(shape.material_id());
 				if constexpr (std::is_same_v<T, Light>) {
 					return material.color();
 				}
@@ -51,7 +32,8 @@ glm::vec3 Scene::raymarch(Ray ray, unsigned int const recursion_depth) const {
 		}
 		ray.advance(distance_to_nearest);
 	}
-	return glm::vec3{};
+
+	return glm::mix(horizon_color_, sky_color_, glm::dot(ray.direction(), glm::vec3{0, 1, 0}));
 }
 
 glm::vec3 Scene::reflection_scan(glm::vec3 const& surface_point, Ray const& incident_ray, unsigned int const recursion_depth) const {
@@ -72,11 +54,11 @@ glm::vec3 Scene::light_scan(glm::vec3 const& surface_point) const {
 	for (auto const& shape : shapes_) {
 		if (std::holds_alternative<Light>(shape)) {
 			auto const light = std::get<Light>(shape);
-			auto const light_material = light.material();
+			auto const light_material = materials_.at(light.material_id());
 			auto const to_light = glm::normalize(light.position() - surface_point);
 
 			auto const distance_to_light = glm::distance(light.position(), surface_point);
-			auto const brightness = glm::clamp(light_material.radiance() / std::powf(distance_to_light, 2), 0.0f, 1.0f);
+			auto const brightness = light_material.radiance() / std::powf(distance_to_light, 2);
 			auto const diffuse_angle = glm::clamp(glm::dot(normal, to_light), 0.0f, 1.0f);
 
 			// Shadow Calculation
@@ -140,75 +122,3 @@ std::pair<Shape, float> Scene::get_nearest_shape(glm::vec3 const& point) const {
 
 	return std::pair<Shape, float>{nearest_shape, distance_to_nearest};
 }
-
-
-std::pair<Camera, Scene> Scene::load_scene_from_json(std::filesystem::path const& path) {
-	auto json_file_stream = std::ifstream{path};
-	auto json_root = Json::Value{};
-	json_file_stream >> json_root;
-
-	// Scene Parameters
-	auto epsilon = 0.001f;
-	if (json_root["epsilon"].isDouble()) epsilon = json_root["epsilon"].asFloat();
-	auto max_iterations = 100u;
-	if (json_root["max_iterations"].isUInt()) max_iterations = json_root["max_iterations"].asUInt();
-	auto max_recursion_depth = 1u;
-	if (json_root["max_recursion_depth"].isUInt()) max_recursion_depth = json_root["max_recursion_depth"].asUInt();
-
-	// Materials
-	auto materials = std::map<std::string, Material>{};
-	for (auto const& material_json : json_root["materials"]) {
-		auto const material_color = read_from_json<glm::vec3>(material_json["color"]);
-		auto const material_reflectance = material_json["reflectance"].asFloat();
-		auto const material_radiance = material_json["radiance"].asFloat();
-		auto const material = Material{material_color, material_reflectance, material_radiance};
-
-		materials[material_json["name"].asString()] = material;
-	}
-
-	// Shapes
-	std::vector<Shape> shapes;
-	for (auto const& shape_json : json_root["shapes"]) {
-		auto const shape_type = shape_json["type"].asString();
-		auto const material = materials[shape_json["material"].asString()];
-
-		if (shape_type == "plane") {
-			auto const normal = read_from_json<glm::vec3>(shape_json["normal"]);
-			auto const offset = shape_json["offset"].asFloat();
-
-			shapes.emplace_back(Plane{normal, offset, material});
-		} else if (shape_type == "sphere") {
-			auto const position = read_from_json<glm::vec3>(shape_json["position"]);
-			auto const radius = shape_json["radius"].asFloat();
-
-			shapes.emplace_back(Sphere{position, radius, material});
-		} else if (shape_type == "box") {
-			auto const position = read_from_json<glm::vec3>(shape_json["position"]);
-			auto const rotation = read_from_json<glm::vec3>(shape_json["rotation"]);
-			auto const half_measures = read_from_json<glm::vec3>(shape_json["half_measures"]);
-
-			shapes.emplace_back(Box{position, rotation, half_measures, material});
-		} else if (shape_type == "light") {
-			auto const position = read_from_json<glm::vec3>(shape_json["position"]);
-			auto const radius = shape_json["radius"].asFloat();
-
-			shapes.emplace_back(Light{position, radius, material});
-		}
-	}
-
-	// Camera
-	auto const camera_json = json_root["camera"];
-	auto const camera = Camera{
-		read_from_json<glm::vec3>(camera_json["position"]),
-		read_from_json<glm::vec3>(camera_json["forward"]),
-		read_from_json<glm::vec3>(camera_json["up"]),
-		read_from_json<glm::vec2>(camera_json["image_resolution"]),
-		camera_json["fov"].asFloat()
-	};
-
-	auto const scene = Scene{epsilon, max_iterations, max_recursion_depth, materials, shapes};
-
-	return std::pair<Camera, Scene>{camera, scene};
-}
-
-

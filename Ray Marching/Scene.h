@@ -5,6 +5,11 @@
 #include <variant>
 #include <vector>
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/map.hpp>
+#include <cereal/types/variant.hpp>
+#include <cereal/types/vector.hpp>
+
 #include "Box.h"
 #include "Camera.h"
 #include "Light.h"
@@ -29,15 +34,29 @@ public:
 	float shadow_scan(Ray ray, float const distance) const;
 
 	std::pair<Shape, float> get_nearest_shape(glm::vec3 const& point) const;
-	
-	static std::pair<Camera, Scene> load_scene_from_json(std::filesystem::path const& path);
+
+	template<class Archive>
+	void serialize(Archive& archive) {
+		archive(
+			cereal::make_nvp("materials", materials_),
+			cereal::make_nvp("shapes", shapes_),
+			cereal::make_nvp("epsilon", epsilon_),
+			cereal::make_nvp("max_iterations", max_iterations_),
+			cereal::make_nvp("max_recursion_depth", max_recursion_depth_),
+			cereal::make_nvp("sky_color", sky_color_),
+			cereal::make_nvp("horizon_color", horizon_color_)
+		);
+	}
 
 private:
 	std::map<std::string, Material> materials_;
 	std::vector<Shape> shapes_;
 
-	float epsilon_;
-	unsigned int max_iterations_;
-	unsigned int max_recursion_depth_;
+	glm::vec3 sky_color_ = glm::vec3{};
+	glm::vec3 horizon_color_ = glm::vec3{};
+
+	float epsilon_ = 0.001f;
+	unsigned int max_iterations_ = 100;
+	unsigned int max_recursion_depth_ = 1;
 };
 
