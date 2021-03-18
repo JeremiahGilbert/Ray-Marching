@@ -1,6 +1,9 @@
 #include <algorithm>
 #include <execution>
+#include <fstream>
 
+#include <cereal/cereal.hpp>
+#include <cereal/archives/json.hpp>
 #include <CImg.h>
 #include <glm/glm.hpp>
 #include <glm/vec2.hpp>
@@ -9,13 +12,20 @@
 #include "Scene.h"
 
 int main() {
-	auto const [camera, scene] = Scene::load_scene_from_json("scene.json");
+	auto camera = Camera{};
+	auto scene = Scene{};
+
+	auto json = std::ifstream{"scene.json"};
+	{
+		auto archive = cereal::JSONInputArchive{json};
+		archive(cereal::make_nvp("camera", camera), cereal::make_nvp("scene", scene));
+	}
 
 	auto const image_resolution = glm::uvec2{camera.image_resolution()};
 
 	cimg_library::CImg<float> image{image_resolution.x, image_resolution.y, 1, 3};
 	image.fill(0);
-	image.permute_axes("cxyz");
+	image.permute_axes("cxyz"); // Convert image to interleaved format.
 
 	auto pixel_vectors = std::vector<Ray>{};
 	for (auto y = 0u; y < image_resolution.y; ++y) {
@@ -28,7 +38,7 @@ int main() {
 		return scene.raymarch(ray);
 	});
 
-	image.permute_axes("yzcx");
+	image.permute_axes("yzcx"); // Convert interleaved format back to planar image format.
 
 	cimg_library::CImgDisplay display{image, "Ray Marching"};
 	while (!display.is_closed()) {

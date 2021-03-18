@@ -1,0 +1,86 @@
+{
+    "epsilon" : 0.001,
+    "max_iterations" : 100,
+    "max_recursion_depth" : 1,
+    
+    "camera" : {
+        "position" : [0.0, 0.0, -10.0],
+        "forward" : [0.0, 0.0, 1.0],
+        "up" : [0.0, 1.0, 0.0],
+        "image_resolution" : [1280, 720],
+        "fov" : 90.0
+    },
+
+    "materials" : [
+        {
+            "name" : "green_reflective",
+            "color" : [0.0, 1.0, 0.1],
+            "reflectance" : 0.5,
+            "radiance" : 0.0
+        },
+        {
+            "name" : "orange_matte",
+            "color" : [1.0, 0.7, 0.1],
+            "reflectance" : 0.0,
+            "radiance" : 0.0
+        },
+        {
+            "name" : "white_matte",
+            "color" : [1.0, 1.0, 1.0],
+            "reflectance" : 0.0,
+            "radiance" : 0.0
+        },
+        {
+            "name" : "magenta_light",
+            "color" : [1.0, 0.0, 1.0],
+            "reflectance" : 0.0,
+            "radiance" : 20.0
+        },
+        {
+            "name" : "cyan_light",
+            "color" : [0.0, 0.7, 1.0],
+            "reflectance" : 0.0,
+            "radiance" : 20.0
+        }
+    ],
+
+    "shapes" : [
+        {
+            "type" : "plane",
+            "normal" : [0.0, 1.0, 0.0],
+            "offset" : 3.0,
+            "material" : "green_reflective"
+        },
+        {
+            "type" : "sphere",
+            "position" : [0.0, 0.0, 0.0],
+            "radius" : 1.0,
+            "material" : "orange_matte"
+        },
+        {
+            "type" : "box",
+            "position" : [8.0, -0.5, 0.0],
+            "rotation" : [0.0, 0.0, 0.0],
+            "half_measures" : [3.0, 3.0, 3.0],
+            "material" : "white_matte"
+        },
+        {
+            "type" : "light",
+            "position" : [-3.0, 0.0, 0.0],
+            "radius" : 0.5,
+            "material" : "magenta_light"
+        },
+        {
+            "type" : "light",
+            "position" : [0.0, 5.0, 0.0],
+            "radius" : 0.5,
+            "material" : "cyan_light"
+        },
+        {
+            "type" : "light",
+            "position" : [-1.0, 5.0, 0.0],
+            "radius" : 0.5,
+            "material" : "cyan_light"
+        }
+    ]
+}

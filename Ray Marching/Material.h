@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cereal/cereal.hpp>
 #include <glm/glm.hpp>
+
+#include "GLM Serialization.h"
 
 class Material {
 public:
@@ -17,6 +20,11 @@ public:
 
 	inline float radiance() const {
 		return radiance_;
+	}
+
+	template<class Archive>
+	void serialize(Archive& archive) {
+		archive(cereal::make_nvp("color", color_), cereal::make_nvp("reflectance", reflectance_), cereal::make_nvp("radiance", radiance_));
 	}
 
 private:
